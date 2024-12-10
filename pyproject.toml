@@ -1,0 +1,13 @@
+[project]
+name = "vn1_forecast_experiments"
+
+[tool.black]
+line-length = 120
+
+[tool.isort]
+skip_gitignore = true
+atomic = true
+mutli_line_output = 3
+indent = 4
+lines_after_imports = 2
+include_trailing_comma = true
