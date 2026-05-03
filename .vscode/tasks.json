@@ -1,0 +1,64 @@
+{
+  // Surfaces the Makefile targets in VS Code / Cursor.
+  // Run any of these via: Ctrl/Cmd+Shift+P → "Tasks: Run Task".
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "uv: install (sync + register kernel)",
+      "type": "shell",
+      "command": "make install",
+      "group": { "kind": "build", "isDefault": true },
+      "problemMatcher": []
+    },
+    {
+      "label": "uv: sync",
+      "type": "shell",
+      "command": "make sync",
+      "problemMatcher": []
+    },
+    {
+      "label": "uv: upgrade all deps",
+      "type": "shell",
+      "command": "make upgrade",
+      "problemMatcher": []
+    },
+    {
+      "label": "jupyter: lab",
+      "type": "shell",
+      "command": "make lab",
+      "isBackground": true,
+      "problemMatcher": []
+    },
+    {
+      "label": "jupyter: classic notebook",
+      "type": "shell",
+      "command": "make notebook",
+      "isBackground": true,
+      "problemMatcher": []
+    },
+    {
+      "label": "kernel: re-register vn1",
+      "type": "shell",
+      "command": "make kernel",
+      "problemMatcher": []
+    },
+    {
+      "label": "format: black + isort",
+      "type": "shell",
+      "command": "make fmt",
+      "problemMatcher": []
+    },
+    {
+      "label": "lint: check formatting",
+      "type": "shell",
+      "command": "make lint",
+      "problemMatcher": []
+    },
+    {
+      "label": "clean caches",
+      "type": "shell",
+      "command": "make clean",
+      "problemMatcher": []
+    }
+  ]
+}

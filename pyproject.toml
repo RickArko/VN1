@@ -10,7 +10,7 @@ dependencies = [
     "darts",
     "fastparquet",
     "feature-engine",
-    "lightgbm",
+    "lightgbm<4.5",  # 4.5+ defines feature_names_in_ as a read-only property; clashes with sklearn validate_data
     "loguru",
     "matplotlib",
     "mlforecast",
