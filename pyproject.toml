@@ -31,7 +31,7 @@ dependencies = [
 [dependency-groups]
 dev = [
     "black",
-    "ipykernel",
+    "ipykernel>=6.29,<7",
     "isort",
     "jupyter",
 ]
