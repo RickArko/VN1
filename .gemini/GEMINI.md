@@ -9,9 +9,11 @@ providers.
 VN1 is a forecasting-experiments repo for the VN1 Challenge — weekly
 retail demand at the Client × Warehouse × Product grain, ~13-week
 horizon. Notebook-first sandbox; no service or library surface. Two
-starter models live at the root: `LightGbmStarter.ipynb` (mlforecast +
-LightGBM) and `AutoETS.ipynb` (statsforecast baseline). Shared loaders
-in `src/data.py`.
+starter models live at the root: `notebooks/EnsembleSubmission.ipynb`
+(canonical Theta + ETS + SNaive + LGBM ensemble), with standalone
+explorations in `notebooks/LightGbmStarter.ipynb` and
+`notebooks/AutoETS.ipynb`. Scripted entrypoint at `main.py`. Shared
+loaders + modeling code in `src/vn1/`.
 
 ## Key Commands
 

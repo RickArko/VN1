@@ -7,7 +7,7 @@ KERNEL_DISPLAY := VN1 (uv)
 
 .DEFAULT_GOAL := help
 
-.PHONY: help install sync lock upgrade kernel lab notebook \
+.PHONY: help install sync lock upgrade kernel lab notebook submit \
         fmt lint typecheck \
         test test-smoke test-unit test-integration test-fast cov check \
         build verify-build clean nuke
@@ -37,6 +37,9 @@ lab:  ## Launch JupyterLab using the project venv.
 
 notebook:  ## Launch classic Jupyter Notebook using the project venv.
 	uv run jupyter notebook
+
+submit:  ## Run the full submission pipeline (main.py) → artifacts/submission.csv.
+	uv run python main.py
 
 # ---- Quality -------------------------------------------------------
 

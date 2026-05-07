@@ -34,12 +34,12 @@ activate the venv manually. The registered kernel display name is
   wide polars DataFrame. `process_wide_df()` unpivots to the long
   `(unique_id, ds, y)` schema that `mlforecast` / `statsforecast`
   expect, where `unique_id = "{Client}-{Warehouse}-{Product}"`.
-- **`LightGbmStarter.ipynb`** — full pipeline: leading-zero trimming →
+- **`notebooks/LightGbmStarter.ipynb`** — full pipeline: leading-zero trimming →
   `LightGBMCV` (4 windows, h=13, lags `[13, 52]`, expanding/rolling-mean
   + rolling-std lag transforms, `LocalRobustScaler` IQR target
   transform) → `MLForecast.from_cv` refit → zero-variance naive
   override → wide submission DataFrame.
-- **`AutoETS.ipynb`** — `statsforecast` AutoETS baseline.
+- **`notebooks/AutoETS.ipynb`** — `statsforecast` AutoETS baseline.
 - **`src/style.py`** — matplotlib rcParams shared by notebooks.
 - **No tests, no linter beyond black/isort, no CI.** This is research
   code; treat new abstractions skeptically.

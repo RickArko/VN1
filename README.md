@@ -26,7 +26,7 @@ Now pick how you want to work:
 
 | You prefer…                    | Do this                                                                                          |
 | ------------------------------ | ------------------------------------------------------------------------------------------------ |
-| **VS Code / Cursor**           | `code .`  → click *Install* on the recommended extensions → open `EnsembleSubmission.ipynb`      |
+| **VS Code / Cursor**           | `code .`  → click *Install* on the recommended extensions → open `notebooks/EnsembleSubmission.ipynb`      |
 | **JupyterLab in the browser**  | `make lab`                                                                                       |
 | **Classic Jupyter Notebook**   | `make notebook`                                                                                  |
 
@@ -49,7 +49,7 @@ Python yourself. Windows users: please run under WSL.
 
 ## What the submission does
 
-`EnsembleSubmission.ipynb` is the canonical entry point. Pipeline:
+`notebooks/EnsembleSubmission.ipynb` is the canonical entry point. Pipeline:
 
 1. **Load + preprocess** — fetch Phase 0/1 sales CSVs from datasource.ai,
    unpivot to `(unique_id, ds, y)` long format, trim leading zeros (pre-launch padding).
@@ -75,9 +75,11 @@ blend cancels. The four bases were chosen for complementary failure modes.
 
 ```text
 .
-├── EnsembleSubmission.ipynb    # canonical submission flow
-├── LightGbmStarter.ipynb       # standalone LightGBM exploration
-├── AutoETS.ipynb               # standalone AutoETS exploration
+├── main.py                     # scripted submission entrypoint (mirrors the notebook)
+├── notebooks/
+│   ├── EnsembleSubmission.ipynb    # canonical submission flow
+│   ├── LightGbmStarter.ipynb       # standalone LightGBM exploration
+│   └── AutoETS.ipynb               # standalone AutoETS exploration
 ├── src/vn1/                    # installable package (`pip install vn1`)
 │   ├── data.py                 # polars-lazy loaders + preprocess
 │   ├── metrics.py              # comp_loss + per-series breakdown
@@ -191,7 +193,7 @@ The repo ships a `.vscode/` folder so the editor is configured out of the box:
   *Ctrl/Cmd+Shift+P → Tasks: Run Task*
 
 After `make install`: `code .`, install recommended extensions when
-prompted, open `EnsembleSubmission.ipynb`, pick **VN1 (uv)** in the
+prompted, open `notebooks/EnsembleSubmission.ipynb`, pick **VN1 (uv)** in the
 kernel dropdown.
 
 ---

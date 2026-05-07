@@ -31,8 +31,10 @@ Code, Codex, Gemini CLI, and other agents that read AGENTS-style files.
 
 ## High-value paths
 
-- `LightGbmStarter.ipynb` — primary mlforecast + LightGBM pipeline.
-- `AutoETS.ipynb` — statsforecast AutoETS baseline.
+- `notebooks/EnsembleSubmission.ipynb` — canonical Theta + ETS + SNaive + LGBM ensemble flow.
+- `notebooks/LightGbmStarter.ipynb` — standalone mlforecast + LightGBM exploration.
+- `notebooks/AutoETS.ipynb` — standalone statsforecast AutoETS baseline.
+- `main.py` — scripted submission entrypoint (mirrors `notebooks/EnsembleSubmission.ipynb`).
 - `src/data.py` — shared loaders (`load_full_data`, `process_wide_df`).
 - `pyproject.toml` — dependency pins (read the comments before editing).
 - `Makefile` — developer entry points.
