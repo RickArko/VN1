@@ -13,7 +13,7 @@
 - Read `CLAUDE.md` — full project orientation, conventions, and pin rationale.
 - Read `.claude/AGENTS.md` for durable repo rules.
 - Run `make install` to set up the venv + Jupyter kernel.
-- Open `LightGbmStarter.ipynb` (the canonical pipeline) and `AutoETS.ipynb` (the baseline).
+- Open `notebooks/LightGbmStarter.ipynb` (the canonical pipeline) and `notebooks/AutoETS.ipynb` (the baseline).
 
 ## Default Working Mode
 - Implementation > speculation.
@@ -35,8 +35,8 @@
 - `make lint` checks formatting only.
 
 ## High-Value Paths
-- `LightGbmStarter.ipynb` — primary pipeline.
-- `AutoETS.ipynb` — baseline.
+- `notebooks/LightGbmStarter.ipynb` — primary pipeline.
+- `notebooks/AutoETS.ipynb` — baseline.
 - `src/data.py` — shared loaders.
 - `pyproject.toml` — dependency pins (read the comments before editing).
 - `Makefile` — developer entry points.

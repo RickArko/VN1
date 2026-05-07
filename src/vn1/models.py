@@ -97,17 +97,95 @@ def fit_predict_stats(
     id_col: str = "unique_id",
     time_col: str = "ds",
     target_col: str = "y",
+    min_history: int | None = None,
+    step_days: int = 7,
 ) -> pl.DataFrame:
     """Fit Theta + AutoETS + SNaive and return long-format polars predictions.
 
     Output schema: ``[id_col, time_col, "Theta", "AutoETS", "SNaive"]``.
-    Fits on the full training frame and forecasts ``h`` steps forward.
+
+    Series with fewer than ``min_history`` observations are routed to a
+    last-value naive fallback (replicated into all three model columns)
+    because ``statsforecast.AutoETS`` raises ``NotImplementedError("tiny
+    datasets")`` and emits divide-by-zero warnings on borderline cases.
+    Default ``min_history`` is ``2 * season_length + 1`` — the textbook
+    minimum for a seasonal ETS to fit. ``step_days`` controls the future-
+    date spacing for the naive fallback (7 for weekly data).
     """
-    sf = build_stats_forecaster(season_length=season_length, freq=freq, n_jobs=n_jobs)
-    pdf = _to_pandas_long(long, id_col=id_col, time_col=time_col, target_col=target_col)
-    fcst = sf.forecast(df=pdf, h=h)
-    out = pl.from_pandas(fcst.reset_index() if "unique_id" not in fcst.columns else fcst)
-    return out.select(id_col, time_col, "Theta", "AutoETS", "SNaive")
+    if min_history is None:
+        min_history = 2 * season_length + 1
+
+    lf = long.lazy() if isinstance(long, pl.DataFrame) else long
+    eager = lf.collect()
+
+    counts = eager.group_by(id_col).len()
+    long_ids = counts.filter(pl.col("len") >= min_history)[id_col]
+    long_subset = eager.filter(pl.col(id_col).is_in(long_ids))
+    short_subset = eager.filter(~pl.col(id_col).is_in(long_ids))
+
+    parts: list[pl.DataFrame] = []
+    if not long_subset.is_empty():
+        sf = build_stats_forecaster(season_length=season_length, freq=freq, n_jobs=n_jobs)
+        pdf = long_subset.select(id_col, time_col, target_col).to_pandas()
+        fcst = sf.forecast(df=pdf, h=h)
+        out = pl.from_pandas(fcst.reset_index() if "unique_id" not in fcst.columns else fcst)
+        parts.append(out.select(id_col, time_col, "Theta", "AutoETS", "SNaive"))
+
+    if not short_subset.is_empty():
+        parts.append(
+            _naive_fallback_horizon(
+                short_subset,
+                h=h,
+                step_days=step_days,
+                id_col=id_col,
+                time_col=time_col,
+                target_col=target_col,
+            )
+        )
+
+    if not parts:
+        return pl.DataFrame(
+            schema={
+                id_col: eager.schema[id_col],
+                time_col: eager.schema[time_col],
+                "Theta": pl.Float64,
+                "AutoETS": pl.Float64,
+                "SNaive": pl.Float64,
+            }
+        )
+    return pl.concat(parts, how="vertical_relaxed").sort(id_col, time_col)
+
+
+def _naive_fallback_horizon(
+    short: pl.DataFrame,
+    *,
+    h: int,
+    step_days: int,
+    id_col: str,
+    time_col: str,
+    target_col: str,
+) -> pl.DataFrame:
+    """Last-value naive: emit ``h`` rows per series at ``step_days`` spacing.
+
+    Replicates the last observed value into all three model columns so
+    the schema matches the statsforecast output exactly.
+    """
+    last = (
+        short.sort(id_col, time_col)
+        .group_by(id_col, maintain_order=True)
+        .agg(
+            last_y=pl.col(target_col).last().cast(pl.Float64),
+            last_ds=pl.col(time_col).last(),
+        )
+    )
+    horizons = pl.DataFrame({"_h": list(range(1, h + 1))})
+    return last.join(horizons, how="cross").select(
+        pl.col(id_col),
+        (pl.col("last_ds") + pl.duration(days=step_days) * pl.col("_h")).alias(time_col),
+        pl.col("last_y").alias("Theta"),
+        pl.col("last_y").alias("AutoETS"),
+        pl.col("last_y").alias("SNaive"),
+    )
 
 
 # ----------------------------------------------------------------------
