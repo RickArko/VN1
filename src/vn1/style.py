@@ -1,15 +1,19 @@
-import matplotlib as mpl
-from matplotlib import cycler
+"""Notebook plotting style — opt-in via :func:`apply_style`."""
 
-colors = cycler(color=["black", "003DFD", "b512b8", "11a9ba", "0d780f", "f77f07", "ba0f0f"])
-mplstyle = {
+from __future__ import annotations
+
+import matplotlib as mpl
+from cycler import cycler
+
+_COLORS = cycler(color=["black", "003DFD", "b512b8", "11a9ba", "0d780f", "f77f07", "ba0f0f"])
+_STYLE = {
     "font.family": "sans serif",
     "axes.edgecolor": "black",
     "axes.grid": True,
     "axes.labelcolor": "#333333",
     "axes.labelweight": 600,
     "axes.linewidth": 1,
-    "axes.prop_cycle": colors,
+    "axes.prop_cycle": _COLORS,
     "axes.spines.top": False,
     "axes.spines.right": False,
     "axes.spines.bottom": False,
@@ -25,4 +29,10 @@ mplstyle = {
     "figure.figsize": (24, 6),
     "figure.titlesize": 18,
 }
-mpl.rcParams.update(mplstyle)
+
+__all__ = ["apply_style"]
+
+
+def apply_style() -> None:
+    """Apply the VN1 matplotlib style. Call once near the top of a notebook."""
+    mpl.rcParams.update(_STYLE)

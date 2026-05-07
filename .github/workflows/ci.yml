@@ -1,0 +1,136 @@
+name: VN1 CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: vn1-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  PYTHON_VERSION: "3.10"
+
+jobs:
+  quality:
+    name: Lint & Typecheck
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
+        with:
+          enable-cache: true
+
+      - name: Install dependencies
+        run: uv sync --group dev
+
+      - name: Ruff lint
+        run: uv run ruff check .
+
+      - name: Ruff format check
+        run: uv run ruff format --check .
+
+      - name: Mypy
+        run: uv run mypy
+
+      - name: Summarize
+        if: always()
+        run: |
+          {
+            echo "## Lint & Typecheck"
+            echo "- Ruff lint: ${{ job.status }}"
+            echo "- Ruff format: ${{ job.status }}"
+            echo "- Mypy on \`src/vn1\`: ${{ job.status }}"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  test:
+    name: Pytest (smoke + unit + integration)
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
+        with:
+          enable-cache: true
+
+      - name: Install dependencies
+        run: uv sync --group dev
+
+      - name: Run pytest
+        # Skip `slow` tests in CI — those fit real statsforecast / lightgbm
+        # models on toy data and add a few minutes per run. They're exercised
+        # locally via `make test`.
+        run: uv run pytest -m "not slow" --cov --cov-report=term-missing
+
+      - name: Summarize
+        if: always()
+        run: |
+          {
+            echo "## Tests"
+            echo "- pytest (smoke + unit + fast integration): ${{ job.status }}"
+            echo "- Commit: \`${{ github.sha }}\`"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  build:
+    name: Build wheel & verify install
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
+        with:
+          enable-cache: true
+
+      - name: Build sdist + wheel
+        run: uv build
+
+      - name: Install wheel in a clean venv
+        run: |
+          uv venv /tmp/verify-venv
+          # shellcheck disable=SC1091
+          . /tmp/verify-venv/bin/activate
+          uv pip install dist/vn1-*.whl
+          python -c "import vn1; print('vn1 version:', vn1.__version__)"
+          python -c "from vn1.metrics import comp_loss; from vn1.validation import rolling_origin_splits; from vn1.ensemble import optimize_weights; print('public API imports OK')"
+
+      - name: Upload distribution artifacts
+        uses: actions/upload-artifact@v7
+        with:
+          name: vn1-dist-${{ github.sha }}
+          path: dist/*
+          retention-days: 14
+          if-no-files-found: error
+
+      - name: Summarize
+        if: always()
+        run: |
+          {
+            echo "## Package Build"
+            echo "- \`uv build\`: ${{ job.status }}"
+            echo "- Wheel install + import smoke: ${{ job.status }}"
+            echo "- Artifacts uploaded as \`vn1-dist-${{ github.sha }}\` (14d retention)"
+          } >> "$GITHUB_STEP_SUMMARY"
