@@ -1,0 +1,43 @@
+# Repo Codex Brief — VN1
+
+> Forecasting-experiments repo for the VN1 Challenge (weekly retail
+> demand, Client × Warehouse × Product, ~13-week horizon). Notebook-first
+> sandbox; no service or library surface.
+
+## Current Priorities
+- Stabilize the LightGBM starter pipeline against the pinned `lightgbm<4.5` / `ipykernel<7` versions.
+- Improve the AutoETS baseline as a sanity reference for any new model.
+- Future work (open): hyperparameter search via Optuna, blended ensembles, per-segment models.
+
+## Start Here
+- Read `CLAUDE.md` — full project orientation, conventions, and pin rationale.
+- Read `.claude/AGENTS.md` for durable repo rules.
+- Run `make install` to set up the venv + Jupyter kernel.
+- Open `LightGbmStarter.ipynb` (the canonical pipeline) and `AutoETS.ipynb` (the baseline).
+
+## Default Working Mode
+- Implementation > speculation.
+- Promote stable notebook code into `src/` as typed functions (mirror `src/data.py`).
+- Call out blockers, risks, and assumptions explicitly.
+
+## Architecture Preferences
+- Polars for transforms; pandas only at library boundaries that demand it.
+- `pyproject.toml` + `uv.lock` are the source of truth for dependencies. No `requirements.txt`.
+- Pinned versions exist for upstream-bug reasons — do not bump `lightgbm`, `ipykernel`, etc. without verifying the upstream fix.
+
+## Output Preferences
+- Concise summaries first.
+- Include exact file paths and commands.
+- Show verification status (which cell ran, what failed) and any gaps.
+
+## Verification Bias
+- This repo has no test suite. Verify by running the affected notebook cells end-to-end and checking that `MLForecast.fit` → `predict` produces the expected output shape.
+- `make lint` checks formatting only.
+
+## High-Value Paths
+- `LightGbmStarter.ipynb` — primary pipeline.
+- `AutoETS.ipynb` — baseline.
+- `src/data.py` — shared loaders.
+- `pyproject.toml` — dependency pins (read the comments before editing).
+- `Makefile` — developer entry points.
+- `.claude/wiki/pages/` — knowledge graph (papers, competition rules, competitor solutions).

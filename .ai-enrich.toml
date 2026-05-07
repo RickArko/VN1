@@ -1,0 +1,10 @@
+# Managed by ai-enrich. Edit the providers list to enable/disable AI layers,
+# then run `ai-enrich init` (idempotent) to apply.
+version   = "0.1.0"
+providers = ["claude", "codex", "gemini", "openrouter"]
+wiki      = true
+prompts   = true
+
+[meta]
+repo    = "VN1"
+created = "2026-05-07"

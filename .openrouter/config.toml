@@ -1,0 +1,38 @@
+# OpenRouter convention file. Read by any agent in this repo that routes
+# Anthropic / OpenAI / Gemini / Llama traffic through OpenRouter.
+# OpenRouter is an API aggregator, not an IDE — these settings are
+# advisory and are honored by ai-enrich-aware tooling.
+
+[provider]
+name    = "openrouter"
+base_url = "https://openrouter.ai/api/v1"
+
+[defaults]
+# Preferred model when no agent override is provided.
+# Examples: "anthropic/claude-opus-4", "openai/gpt-4o",
+#           "google/gemini-pro-1.5", "meta-llama/llama-3.1-70b-instruct"
+model       = "anthropic/claude-opus-4"
+temperature = 0.2
+max_tokens  = 4096
+
+[fallbacks]
+# Ordered list. Agents try the next entry on rate-limit / 5xx / model
+# unavailability.
+order = [
+  "anthropic/claude-sonnet-4",
+  "openai/gpt-4o-mini",
+  "meta-llama/llama-3.1-70b-instruct",
+]
+
+[routing]
+# Per-task overrides. Keys are free-form labels the agent uses to pick
+# a model: e.g. "code", "long-context", "cheap".
+code         = "anthropic/claude-sonnet-4"
+long_context = "google/gemini-pro-1.5"
+cheap        = "openai/gpt-4o-mini"
+
+[secrets]
+# The API key lives outside this file. Agents should read it from:
+#   1. $OPENROUTER_API_KEY environment variable
+#   2. Bitwarden item: agent.openrouter.api_key
+# See .openrouter/.env.example for the shape.
