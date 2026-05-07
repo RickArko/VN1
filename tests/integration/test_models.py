@@ -40,6 +40,18 @@ def test_stats_fit_predict_returns_long_polars(toy_long: pl.DataFrame) -> None:
     # 8 forecast weeks × 4 series
     assert out["unique_id"].n_unique() == toy_long["unique_id"].n_unique()
     assert (out.group_by("unique_id").len()["len"] == 8).all()
+    # Regression: pandas-roundtrip used to leak datetime[ms] and break the
+    # cross_validate join (truth side is Date). Pin the contract.
+    assert out.schema["ds"] == pl.Date
+
+
+@pytest.mark.slow
+@pytest.mark.skipif(not (_have("mlforecast") and _have("lightgbm")), reason="mlforecast / lightgbm missing")
+def test_lgbm_fit_predict_returns_date_typed_ds(toy_long: pl.DataFrame) -> None:
+    from vn1.models import fit_predict_lgbm
+
+    out = fit_predict_lgbm(toy_long, h=4, n_estimators=30, freq="7d", season_length=52)
+    assert out.schema["ds"] == pl.Date
 
 
 # ---------------------------------------------------------------------

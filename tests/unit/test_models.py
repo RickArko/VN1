@@ -54,6 +54,14 @@ def test_naive_fallback_dates_step_correctly() -> None:
     assert out["ds"].to_list() == expected
 
 
+def test_naive_fallback_emits_date_typed_ds() -> None:
+    """`Date + Duration` upcasts to Datetime in polars 1.x; the fallback must coerce
+    back to Date so the cross_validate join key matches the truth side."""
+    short = _short_series(n=3, sid="x")
+    out = _naive_fallback_horizon(short, h=2, step_days=7, id_col="unique_id", time_col="ds", target_col="y")
+    assert out.schema["ds"] == pl.Date
+
+
 def test_fit_predict_stats_routes_short_series_to_fallback(toy_long: pl.DataFrame) -> None:
     """Trim one series to <105 rows; it must come back via the naive path
     with the last observed value in Theta/AutoETS/SNaive, not through

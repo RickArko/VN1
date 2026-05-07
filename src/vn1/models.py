@@ -129,7 +129,13 @@ def fit_predict_stats(
         pdf = long_subset.select(id_col, time_col, target_col).to_pandas()
         fcst = sf.forecast(df=pdf, h=h)
         out = pl.from_pandas(fcst.reset_index() if "unique_id" not in fcst.columns else fcst)
-        parts.append(out.select(id_col, time_col, "Theta", "AutoETS", "SNaive"))
+        # statsforecast returns pandas Timestamp → polars datetime[ns|ms]; coerce
+        # back to Date so the join key matches the truth side downstream.
+        parts.append(
+            out.select(id_col, time_col, "Theta", "AutoETS", "SNaive").with_columns(
+                pl.col(time_col).cast(pl.Date),
+            )
+        )
 
     if not short_subset.is_empty():
         parts.append(
@@ -179,12 +185,18 @@ def _naive_fallback_horizon(
         )
     )
     horizons = pl.DataFrame({"_h": list(range(1, h + 1))})
-    return last.join(horizons, how="cross").select(
-        pl.col(id_col),
-        (pl.col("last_ds") + pl.duration(days=step_days) * pl.col("_h")).alias(time_col),
-        pl.col("last_y").alias("Theta"),
-        pl.col("last_y").alias("AutoETS"),
-        pl.col("last_y").alias("SNaive"),
+    return (
+        last.join(horizons, how="cross")
+        .select(
+            pl.col(id_col),
+            (pl.col("last_ds") + pl.duration(days=step_days) * pl.col("_h")).alias(time_col),
+            pl.col("last_y").alias("Theta"),
+            pl.col("last_y").alias("AutoETS"),
+            pl.col("last_y").alias("SNaive"),
+        )
+        # Date + Duration upcasts to Datetime in polars 1.x; cast back so the
+        # join key matches the rest of the pipeline (Date-typed `ds`).
+        .with_columns(pl.col(time_col).cast(pl.Date))
     )
 
 
@@ -348,5 +360,9 @@ def fit_predict_lgbm(
         preds = mlf.predict(h)
 
     if isinstance(preds, pl.DataFrame):
-        return preds.select(id_col, time_col, pl.col("LGBM"))
-    return pl.from_pandas(preds).select(id_col, time_col, pl.col("LGBM"))
+        out = preds.select(id_col, time_col, pl.col("LGBM"))
+    else:
+        out = pl.from_pandas(preds).select(id_col, time_col, pl.col("LGBM"))
+    # mlforecast may return ds as Datetime depending on the input freq; coerce
+    # back to Date so cross_validate's join key matches the truth side.
+    return out.with_columns(pl.col(time_col).cast(pl.Date))
